@@ -23,11 +23,11 @@ import (
 
 // Menu management for RBAC
 type Menu struct {
-	Cache           cachex.Cacher
-	Trans           *util.Trans
-	MenuDAL         *dal.Menu
-	MenuResourceDAL *dal.MenuResource
-	RoleMenuDAL     *dal.RoleMenu
+	Cache       cachex.Cacher
+	Trans       *util.Trans
+	MenuDAL     *dal.Menu
+	MenuMetaDAL *dal.MenuMeta
+	RoleMenuDAL *dal.RoleMenu
 }
 
 func (a *Menu) InitFromFile(ctx context.Context, menuFile string) error {
@@ -74,8 +74,6 @@ func (a *Menu) createInBatchByParent(ctx context.Context, items schema.Menus, pa
 
 		if item.ID != "" {
 			menuItem, err = a.MenuDAL.Get(ctx, item.ID)
-		} else if item.Code != "" {
-			menuItem, err = a.MenuDAL.GetByCodeAndParentID(ctx, item.Code, parentID)
 		} else if item.Name != "" {
 			menuItem, err = a.MenuDAL.GetByNameAndParentID(ctx, item.Name, parentID)
 		}
@@ -102,14 +100,6 @@ func (a *Menu) createInBatchByParent(ctx context.Context, items schema.Menus, pa
 				menuItem.Path = item.Path
 				changed = true
 			}
-			if menuItem.Type != item.Type {
-				menuItem.Type = item.Type
-				changed = true
-			}
-			if menuItem.Sequence != item.Sequence {
-				menuItem.Sequence = item.Sequence
-				changed = true
-			}
 			if menuItem.Status != item.Status {
 				menuItem.Status = item.Status
 				changed = true
@@ -124,44 +114,31 @@ func (a *Menu) createInBatchByParent(ctx context.Context, items schema.Menus, pa
 			if item.ID == "" {
 				item.ID = util.NewXID()
 			}
-			if item.Sequence == 0 {
-				item.Sequence = total - i
+			if item.Meta.Order == 0 {
+				item.Meta.Order = total - i
 			}
 			item.ParentID = parentID
-			if parent != nil {
-				item.ParentPath = parent.ParentPath + parentID + util.TreePathDelimiter
-			}
 			menuItem = item
 			if err := a.MenuDAL.Create(ctx, item); err != nil {
 				return err
 			}
 		}
 
-		for _, res := range item.Resources {
-			if res.ID != "" {
-				exists, err := a.MenuResourceDAL.Exists(ctx, res.ID)
-				if err != nil {
-					return err
-				} else if exists {
-					continue
-				}
-			}
-
-			if res.Path != "" {
-				exists, err := a.MenuResourceDAL.ExistsMethodPathByMenuID(ctx, res.Method, res.Path, menuItem.ID)
-				if err != nil {
-					return err
-				} else if exists {
-					continue
-				}
-			}
-			if res.ID == "" {
-				res.ID = util.NewXID()
-			}
-			res.MenuID = menuItem.ID
-			if err := a.MenuResourceDAL.Create(ctx, res); err != nil {
+		if item.Meta.ID != "" {
+			exists, err := a.MenuMetaDAL.Exists(ctx, item.Meta.ID)
+			if err != nil {
 				return err
+			} else if exists {
+				continue
 			}
+		}
+
+		if item.Meta.ID == "" {
+			item.Meta.ID = util.NewXID()
+		}
+		item.Meta.MenuID = menuItem.ID
+		if err := a.MenuMetaDAL.Create(ctx, item.Meta); err != nil {
+			return err
 		}
 
 		if item.Children != nil {
@@ -199,13 +176,13 @@ func (a *Menu) Query(ctx context.Context, params schema.MenuQueryParam) (*schema
 
 	if params.IncludeResources {
 		for i, item := range result.Data {
-			resResult, err := a.MenuResourceDAL.Query(ctx, schema.MenuResourceQueryParam{
+			resResult, err := a.MenuMetaDAL.Query(ctx, schema.MenuMetaQueryParam{
 				MenuID: item.ID,
 			})
 			if err != nil {
 				return nil, err
 			}
-			result.Data[i].Resources = resResult.Data
+			result.Data[i].Meta = resResult.Data
 		}
 	}
 
@@ -236,7 +213,6 @@ func (a *Menu) fillQueryParam(ctx context.Context, params *schema.MenuQueryParam
 			}
 			lastMenu = *menu
 		}
-		params.ParentPathPrefix = lastMenu.ParentPath + lastMenu.ID + util.TreePathDelimiter
 	}
 	return nil
 }
@@ -253,21 +229,6 @@ func (a *Menu) appendChildren(ctx context.Context, data schema.Menus) (schema.Me
 			}
 		}
 		return false
-	}
-
-	for _, item := range data {
-		childResult, err := a.MenuDAL.Query(ctx, schema.MenuQueryParam{
-			ParentPathPrefix: item.ParentPath + item.ID + util.TreePathDelimiter,
-		})
-		if err != nil {
-			return nil, err
-		}
-		for _, child := range childResult.Data {
-			if existsInData(child.ID) {
-				continue
-			}
-			data = append(data, child)
-		}
 	}
 
 	if parentIDs := data.SplitParentIDs(); len(parentIDs) > 0 {
@@ -298,13 +259,13 @@ func (a *Menu) Get(ctx context.Context, id string) (*schema.Menu, error) {
 		return nil, errors.NotFound("", "Menu not found")
 	}
 
-	menuResResult, err := a.MenuResourceDAL.Query(ctx, schema.MenuResourceQueryParam{
+	menuResResult, err := a.MenuMetaDAL.Query(ctx, schema.MenuMetaQueryParam{
 		MenuID: menu.ID,
 	})
 	if err != nil {
 		return nil, err
 	}
-	menu.Resources = menuResResult.Data
+	menu.Meta = menuResResult.Data
 
 	return menu, nil
 }
@@ -327,10 +288,9 @@ func (a *Menu) Create(ctx context.Context, formItem *schema.MenuForm) (*schema.M
 		} else if parent == nil {
 			return nil, errors.NotFound("", "Parent not found")
 		}
-		menu.ParentPath = parent.ParentPath + parent.ID + util.TreePathDelimiter
 	}
 
-	if exists, err := a.MenuDAL.ExistsCodeByParentID(ctx, formItem.Code, formItem.ParentID); err != nil {
+	if exists, err := a.MenuDAL.ExistsCodeByParentID(ctx, formItem.Name, formItem.ParentID); err != nil {
 		return nil, err
 	} else if exists {
 		return nil, errors.BadRequest("", "Menu code already exists at the same level")
@@ -345,13 +305,11 @@ func (a *Menu) Create(ctx context.Context, formItem *schema.MenuForm) (*schema.M
 			return err
 		}
 
-		for _, res := range formItem.Resources {
-			res.ID = util.NewXID()
-			res.MenuID = menu.ID
-			res.CreatedAt = time.Now()
-			if err := a.MenuResourceDAL.Create(ctx, res); err != nil {
-				return err
-			}
+		menu.Meta.ID = util.NewXID()
+		menu.Meta.MenuID = menu.ID
+		menu.Meta.CreatedAt = time.Now()
+		if err := a.MenuMetaDAL.Create(ctx, menu.Meta); err != nil {
+			return err
 		}
 
 		return nil
@@ -375,37 +333,8 @@ func (a *Menu) Update(ctx context.Context, id string, formItem *schema.MenuForm)
 		return errors.NotFound("", "Menu not found")
 	}
 
-	oldParentPath := menu.ParentPath
-	oldStatus := menu.Status
-	var childData schema.Menus
-	if menu.ParentID != formItem.ParentID {
-		if parentID := formItem.ParentID; parentID != "" {
-			parent, err := a.MenuDAL.Get(ctx, parentID)
-			if err != nil {
-				return err
-			} else if parent == nil {
-				return errors.NotFound("", "Parent not found")
-			}
-			menu.ParentPath = parent.ParentPath + parent.ID + util.TreePathDelimiter
-		} else {
-			menu.ParentPath = ""
-		}
-
-		childResult, err := a.MenuDAL.Query(ctx, schema.MenuQueryParam{
-			ParentPathPrefix: oldParentPath + menu.ID + util.TreePathDelimiter,
-		}, schema.MenuQueryOptions{
-			QueryOptions: util.QueryOptions{
-				SelectFields: []string{"id", "parent_path"},
-			},
-		})
-		if err != nil {
-			return err
-		}
-		childData = childResult.Data
-	}
-
-	if menu.Code != formItem.Code {
-		if exists, err := a.MenuDAL.ExistsCodeByParentID(ctx, formItem.Code, formItem.ParentID); err != nil {
+	if menu.Name != formItem.Name {
+		if exists, err := a.MenuDAL.ExistsCodeByParentID(ctx, formItem.Name, formItem.ParentID); err != nil {
 			return err
 		} else if exists {
 			return errors.BadRequest("", "Menu code already exists at the same level")
@@ -417,41 +346,24 @@ func (a *Menu) Update(ctx context.Context, id string, formItem *schema.MenuForm)
 	}
 
 	return a.Trans.Exec(ctx, func(ctx context.Context) error {
-		if oldStatus != formItem.Status {
-			oldPath := oldParentPath + menu.ID + util.TreePathDelimiter
-			if err := a.MenuDAL.UpdateStatusByParentPath(ctx, oldPath, formItem.Status); err != nil {
-				return err
-			}
-		}
-
-		for _, child := range childData {
-			oldPath := oldParentPath + menu.ID + util.TreePathDelimiter
-			newPath := menu.ParentPath + menu.ID + util.TreePathDelimiter
-			err := a.MenuDAL.UpdateParentPath(ctx, child.ID, strings.Replace(child.ParentPath, oldPath, newPath, 1))
-			if err != nil {
-				return err
-			}
-		}
 
 		if err := a.MenuDAL.Update(ctx, menu); err != nil {
 			return err
 		}
 
-		if err := a.MenuResourceDAL.DeleteByMenuID(ctx, id); err != nil {
+		if err := a.MenuMetaDAL.DeleteByMenuID(ctx, id); err != nil {
 			return err
 		}
-		for _, res := range formItem.Resources {
-			if res.ID == "" {
-				res.ID = util.NewXID()
-			}
-			res.MenuID = id
-			if res.CreatedAt.IsZero() {
-				res.CreatedAt = time.Now()
-			}
-			res.UpdatedAt = time.Now()
-			if err := a.MenuResourceDAL.Create(ctx, res); err != nil {
-				return err
-			}
+		if formItem.Meta.ID == "" {
+			formItem.Meta.ID = util.NewXID()
+		}
+		formItem.Meta.MenuID = id
+		if formItem.Meta.CreatedAt.IsZero() {
+			formItem.Meta.CreatedAt = time.Now()
+		}
+		formItem.Meta.UpdatedAt = time.Now()
+		if err := a.MenuMetaDAL.Create(ctx, formItem.Meta); err != nil {
+			return err
 		}
 
 		return a.syncToCasbin(ctx)
@@ -471,28 +383,10 @@ func (a *Menu) Delete(ctx context.Context, id string) error {
 		return errors.NotFound("", "Menu not found")
 	}
 
-	childResult, err := a.MenuDAL.Query(ctx, schema.MenuQueryParam{
-		ParentPathPrefix: menu.ParentPath + menu.ID + util.TreePathDelimiter,
-	}, schema.MenuQueryOptions{
-		QueryOptions: util.QueryOptions{
-			SelectFields: []string{"id"},
-		},
-	})
-	if err != nil {
-		return err
-	}
-
 	return a.Trans.Exec(ctx, func(ctx context.Context) error {
 		if err := a.delete(ctx, id); err != nil {
 			return err
 		}
-
-		for _, child := range childResult.Data {
-			if err := a.delete(ctx, child.ID); err != nil {
-				return err
-			}
-		}
-
 		return a.syncToCasbin(ctx)
 	})
 }
@@ -501,7 +395,7 @@ func (a *Menu) delete(ctx context.Context, id string) error {
 	if err := a.MenuDAL.Delete(ctx, id); err != nil {
 		return err
 	}
-	if err := a.MenuResourceDAL.DeleteByMenuID(ctx, id); err != nil {
+	if err := a.MenuMetaDAL.DeleteByMenuID(ctx, id); err != nil {
 		return err
 	}
 	if err := a.RoleMenuDAL.DeleteByMenuID(ctx, id); err != nil {

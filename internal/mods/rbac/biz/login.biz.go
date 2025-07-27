@@ -132,19 +132,19 @@ func (a *Login) genUserToken(ctx context.Context, userID string) (*schema.LoginT
 		return nil, err
 	}
 	logging.Context(ctx).Info("Generate user token", zap.Any("token", string(tokenBuf)))
-
 	return &schema.LoginToken{
-		AccessToken: token.GetAccessToken(),
-		TokenType:   token.GetTokenType(),
-		ExpiresAt:   token.GetExpiresAt(),
+		Token:        token.GetAccessToken(),
+		RefreshToken: token.GetRefreshToken(),
+		TokenType:    token.GetTokenType(),
+		ExpiresAt:    token.GetExpiresAt(),
 	}, nil
 }
 
 func (a *Login) Login(ctx context.Context, formItem *schema.LoginForm) (*schema.LoginToken, error) {
 	// verify captcha
-	if !captcha.VerifyString(formItem.CaptchaID, formItem.CaptchaCode) {
-		return nil, errors.BadRequest(config.ErrInvalidCaptchaID, "Incorrect captcha")
-	}
+	// if !captcha.VerifyString(formItem.CaptchaID, formItem.CaptchaCode) {
+	//	return nil, errors.BadRequest(config.ErrInvalidCaptchaID, "Incorrect captcha")
+	// }
 
 	ctx = logging.NewTag(ctx, logging.TagKeyLogin)
 

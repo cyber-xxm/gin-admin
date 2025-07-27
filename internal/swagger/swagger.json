@@ -1564,7 +1564,7 @@
                     "description": "Resources of menu",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/schema.MenuResource"
+                        "$ref": "#/definitions/schema.MenuMeta"
                     }
                 },
                 "sequence": {
@@ -1624,7 +1624,7 @@
                     "description": "Resources of menu",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/schema.MenuResource"
+                        "$ref": "#/definitions/schema.MenuMeta"
                     }
                 },
                 "sequence": {
@@ -1649,7 +1649,7 @@
                 }
             }
         },
-        "schema.MenuResource": {
+        "schema.MenuMeta": {
             "type": "object",
             "properties": {
                 "created_at": {

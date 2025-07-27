@@ -1,12 +1,9 @@
 package schema
 
 import (
-	"encoding/json"
-	"strings"
 	"time"
 
 	"github.com/LyricTian/gin-admin/v10/internal/config"
-	"github.com/LyricTian/gin-admin/v10/pkg/errors"
 	"github.com/LyricTian/gin-admin/v10/pkg/util"
 )
 
@@ -24,21 +21,17 @@ var (
 
 // Menu management for RBAC
 type Menu struct {
-	ID          string        `json:"id" gorm:"size:20;primarykey;"`      // Unique ID
-	Code        string        `json:"code" gorm:"size:32;index;"`         // Code of menu (unique for each level)
-	Name        string        `json:"name" gorm:"size:128;index"`         // Display name of menu
-	Description string        `json:"description" gorm:"size:1024"`       // Details about menu
-	Sequence    int           `json:"sequence" gorm:"index;"`             // Sequence for sorting (Order by desc)
-	Type        string        `json:"type" gorm:"size:20;index"`          // Type of menu (page, button)
-	Path        string        `json:"path" gorm:"size:255;"`              // Access path of menu
-	Properties  string        `json:"properties" gorm:"type:text;"`       // Properties of menu (JSON)
-	Status      string        `json:"status" gorm:"size:20;index"`        // Status of menu (enabled, disabled)
-	ParentID    string        `json:"parent_id" gorm:"size:20;index;"`    // Parent ID (From Menu.ID)
-	ParentPath  string        `json:"parent_path" gorm:"size:255;index;"` // Parent path (split by .)
-	Children    *Menus        `json:"children" gorm:"-"`                  // Child menus
-	CreatedAt   time.Time     `json:"created_at" gorm:"index;"`           // Create time
-	UpdatedAt   time.Time     `json:"updated_at" gorm:"index;"`           // Update time
-	Resources   MenuResources `json:"resources" gorm:"-"`                 // Resources of menu
+	ID          string    `json:"id" gorm:"size:20;primarykey;"`   // Unique ID
+	Name        string    `json:"name" gorm:"size:128;index"`      // Display name of menu
+	Path        string    `json:"path" gorm:"size:255;"`           // Access path of menu
+	Component   string    `json:"component" gorm:"size:255;"`      // Code of menu (unique for each level)
+	Description string    `json:"description" gorm:"size:1024"`    // Details about menu
+	ParentID    string    `json:"parent_id" gorm:"size:20;index;"` // Parent ID (From Menu.ID)
+	Children    *Menus    `json:"children" gorm:"-"`               // Child menus
+	Status      string    `json:"status" gorm:"size:20;index"`     // Status of menu (enabled, disabled)
+	CreatedAt   time.Time `json:"created_at" gorm:"index;"`        // Create time
+	UpdatedAt   time.Time `json:"updated_at" gorm:"index;"`        // Update time
+	Meta        *MenuMeta `json:"meta" gorm:"-"`                   // Meta of menu
 }
 
 func (a *Menu) TableName() string {
@@ -78,10 +71,10 @@ func (a Menus) Len() int {
 }
 
 func (a Menus) Less(i, j int) bool {
-	if a[i].Sequence == a[j].Sequence {
+	if a[i].Meta.Order == a[j].Meta.Order {
 		return a[i].CreatedAt.Unix() > a[j].CreatedAt.Unix()
 	}
-	return a[i].Sequence > a[j].Sequence
+	return a[i].Meta.Order > a[j].Meta.Order
 }
 
 func (a Menus) Swap(i, j int) {
@@ -104,18 +97,6 @@ func (a Menus) SplitParentIDs() []string {
 			continue
 		}
 		idMapper[item.ID] = struct{}{}
-		if pp := item.ParentPath; pp != "" {
-			for _, pid := range strings.Split(pp, util.TreePathDelimiter) {
-				if pid == "" {
-					continue
-				}
-				if _, ok := idMapper[pid]; ok {
-					continue
-				}
-				parentIDs = append(parentIDs, pid)
-				idMapper[pid] = struct{}{}
-			}
-		}
 	}
 	return parentIDs
 }
@@ -142,37 +123,21 @@ func (a Menus) ToTree() Menus {
 
 // Defining the data structure for creating a `Menu` struct.
 type MenuForm struct {
-	Code        string        `json:"code" binding:"required,max=32"`                   // Code of menu (unique for each level)
-	Name        string        `json:"name" binding:"required,max=128"`                  // Display name of menu
-	Description string        `json:"description"`                                      // Details about menu
-	Sequence    int           `json:"sequence"`                                         // Sequence for sorting (Order by desc)
-	Type        string        `json:"type" binding:"required,oneof=page button"`        // Type of menu (page, button)
-	Path        string        `json:"path"`                                             // Access path of menu
-	Properties  string        `json:"properties"`                                       // Properties of menu (JSON)
-	Status      string        `json:"status" binding:"required,oneof=disabled enabled"` // Status of menu (enabled, disabled)
-	ParentID    string        `json:"parent_id"`                                        // Parent ID (From Menu.ID)
-	Resources   MenuResources `json:"resources"`                                        // Resources of menu
-}
-
-// A validation function for the `MenuForm` struct.
-func (a *MenuForm) Validate() error {
-	if v := a.Properties; v != "" {
-		if !json.Valid([]byte(v)) {
-			return errors.BadRequest("", "invalid properties")
-		}
-	}
-	return nil
+	Name        string    `json:"name" binding:"required,max=128"`                  // Display name of menu
+	Path        string    `json:"path" binding:"required"`                          // Access path of menu
+	Component   string    `json:"component"`                                        // Details about menu
+	Description string    `json:"description"`                                      // Details about menu
+	ParentID    string    `json:"parent_id"`                                        // Parent ID (From Menu.ID)
+	Status      string    `json:"status" binding:"required,oneof=disabled enabled"` // Status of menu (enabled, disabled)
+	Meta        *MenuMeta `json:"meta" binding:"required"`                          // Meta of menu
 }
 
 func (a *MenuForm) FillTo(menu *Menu) error {
-	menu.Code = a.Code
 	menu.Name = a.Name
-	menu.Description = a.Description
-	menu.Sequence = a.Sequence
-	menu.Type = a.Type
 	menu.Path = a.Path
-	menu.Properties = a.Properties
-	menu.Status = a.Status
+	menu.Component = a.Component
+	menu.Description = a.Description
 	menu.ParentID = a.ParentID
+	menu.Status = a.Status
 	return nil
 }

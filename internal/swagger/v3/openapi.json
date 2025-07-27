@@ -1623,7 +1623,7 @@
           "resources" : {
             "description" : "Resources of menu",
             "items" : {
-              "$ref" : "#/components/schemas/schema.MenuResource"
+              "$ref" : "#/components/schemas/schema.MenuMeta"
             },
             "type" : "array"
           },
@@ -1677,7 +1677,7 @@
           "resources" : {
             "description" : "Resources of menu",
             "items" : {
-              "$ref" : "#/components/schemas/schema.MenuResource"
+              "$ref" : "#/components/schemas/schema.MenuMeta"
             },
             "type" : "array"
           },
@@ -1699,7 +1699,7 @@
         "required" : [ "code", "name", "status", "type" ],
         "type" : "object"
       },
-      "schema.MenuResource" : {
+      "schema.MenuMeta" : {
         "properties" : {
           "created_at" : {
             "description" : "Create time",

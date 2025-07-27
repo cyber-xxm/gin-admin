@@ -12,6 +12,8 @@ type ResponseResult struct {
 	Success bool          `json:"success"`
 	Data    interface{}   `json:"data,omitempty"`
 	Total   int64         `json:"total,omitempty"`
+	Code    int           `json:"code,omitempty"`
+	Msg     string        `json:"msg,omitempty"`
 	Error   *errors.Error `json:"error,omitempty"`
 }
 

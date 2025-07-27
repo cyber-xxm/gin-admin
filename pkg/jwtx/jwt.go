@@ -98,24 +98,68 @@ func (a *JWTAuth) GenerateToken(ctx context.Context, subject string) (TokenInfo,
 	now := time.Now()
 	expiresAt := now.Add(time.Duration(a.opts.expired) * time.Second).Unix()
 
-	token := jwt.NewWithClaims(a.opts.signingMethod, &jwt.StandardClaims{
+	accessToken := jwt.NewWithClaims(a.opts.signingMethod, &jwt.StandardClaims{
 		IssuedAt:  now.Unix(),
 		ExpiresAt: expiresAt,
 		NotBefore: now.Unix(),
 		Subject:   subject,
 	})
 
-	tokenStr, err := token.SignedString(a.opts.signingKey)
+	accessTokenStr, err := accessToken.SignedString(a.opts.signingKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// RefreshToken 设置 30 天过期
+	refreshExpiredAt := now.Add(30 * 24 * time.Hour).Unix()
+	refreshToken := jwt.NewWithClaims(a.opts.signingMethod, &jwt.StandardClaims{
+		IssuedAt:  now.Unix(),
+		ExpiresAt: refreshExpiredAt,
+		NotBefore: now.Unix(),
+		Subject:   subject,
+	})
+
+	refreshTokenStr, err := refreshToken.SignedString(a.opts.signingKey)
 	if err != nil {
 		return nil, err
 	}
 
 	tokenInfo := &tokenInfo{
-		ExpiresAt:   expiresAt,
-		TokenType:   a.opts.tokenType,
-		AccessToken: tokenStr,
+		ExpiresAt:    expiresAt,
+		TokenType:    a.opts.tokenType,
+		AccessToken:  accessTokenStr,
+		RefreshToken: refreshTokenStr,
 	}
+
+	// 可选：把 refresh token 存起来用于后续校验和注销
+	_ = a.callStore(func(store Storer) error {
+		return store.Set(ctx, refreshTokenStr, time.Until(time.Unix(refreshExpiredAt, 0)))
+	})
+
 	return tokenInfo, nil
+}
+
+func (a *JWTAuth) RefreshToken(ctx context.Context, refreshToken string) (TokenInfo, error) {
+	claims, err := a.parseToken(refreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	// 检查是否被吊销
+	err = a.callStore(func(store Storer) error {
+		if exists, err := store.Check(ctx, refreshToken); err != nil {
+			return err
+		} else if exists {
+			return ErrInvalidToken
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// 再生成新的 access 和 refresh token
+	return a.GenerateToken(ctx, claims.Subject)
 }
 
 func (a *JWTAuth) parseToken(tokenStr string) (*jwt.StandardClaims, error) {

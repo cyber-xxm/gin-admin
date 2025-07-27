@@ -1572,7 +1572,7 @@ const docTemplate = `{
                     "description": "Resources of menu",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/schema.MenuResource"
+                        "$ref": "#/definitions/schema.MenuMeta"
                     }
                 },
                 "sequence": {
@@ -1632,7 +1632,7 @@ const docTemplate = `{
                     "description": "Resources of menu",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/schema.MenuResource"
+                        "$ref": "#/definitions/schema.MenuMeta"
                     }
                 },
                 "sequence": {
@@ -1657,7 +1657,7 @@ const docTemplate = `{
                 }
             }
         },
-        "schema.MenuResource": {
+        "schema.MenuMeta": {
             "type": "object",
             "properties": {
                 "created_at": {

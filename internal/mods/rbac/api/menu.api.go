@@ -71,9 +71,6 @@ func (a *Menu) Create(c *gin.Context) {
 	if err := util.ParseJSON(c, item); err != nil {
 		util.ResError(c, err)
 		return
-	} else if err := item.Validate(); err != nil {
-		util.ResError(c, err)
-		return
 	}
 
 	result, err := a.MenuBIZ.Create(ctx, item)
@@ -98,9 +95,6 @@ func (a *Menu) Update(c *gin.Context) {
 	ctx := c.Request.Context()
 	item := new(schema.MenuForm)
 	if err := util.ParseJSON(c, item); err != nil {
-		util.ResError(c, err)
-		return
-	} else if err := item.Validate(); err != nil {
 		util.ResError(c, err)
 		return
 	}

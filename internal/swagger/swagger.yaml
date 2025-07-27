@@ -121,7 +121,7 @@ definitions:
       resources:
         description: Resources of menu
         items:
-          $ref: '#/definitions/schema.MenuResource'
+          $ref: '#/definitions/schema.MenuMeta'
         type: array
       sequence:
         description: Sequence for sorting (Order by desc)
@@ -161,7 +161,7 @@ definitions:
       resources:
         description: Resources of menu
         items:
-          $ref: '#/definitions/schema.MenuResource'
+          $ref: '#/definitions/schema.MenuMeta'
         type: array
       sequence:
         description: Sequence for sorting (Order by desc)
@@ -184,7 +184,7 @@ definitions:
     - status
     - type
     type: object
-  schema.MenuResource:
+  schema.MenuMeta:
     properties:
       created_at:
         description: Create time

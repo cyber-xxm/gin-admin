@@ -82,6 +82,8 @@ func ResJSON(c *gin.Context, status int, v interface{}) {
 func ResSuccess(c *gin.Context, v interface{}) {
 	ResJSON(c, http.StatusOK, ResponseResult{
 		Success: true,
+		Code:    http.StatusOK,
+		Msg:     "操作成功",
 		Data:    v,
 	})
 }
@@ -89,6 +91,8 @@ func ResSuccess(c *gin.Context, v interface{}) {
 func ResOK(c *gin.Context) {
 	ResJSON(c, http.StatusOK, ResponseResult{
 		Success: true,
+		Code:    http.StatusOK,
+		Msg:     "操作成功",
 	})
 }
 
@@ -107,6 +111,8 @@ func ResPage(c *gin.Context, v interface{}, pr *PaginationResult) {
 		Success: true,
 		Data:    v,
 		Total:   total,
+		Code:    http.StatusOK,
+		Msg:     "操作成功",
 	})
 }
 
@@ -132,5 +138,9 @@ func ResError(c *gin.Context, err error, status ...int) {
 	}
 
 	ierr.Code = int32(code)
-	ResJSON(c, code, ResponseResult{Error: ierr})
+	ResJSON(c, code, ResponseResult{
+		Error: ierr,
+		Code:  code,
+		Msg:   "操作失败: " + ierr.Detail,
+	})
 }

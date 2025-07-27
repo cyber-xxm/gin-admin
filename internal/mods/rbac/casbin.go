@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -24,12 +23,12 @@ import (
 
 // Load rbac permissions to casbin
 type Casbinx struct {
-	enforcer        *atomic.Value `wire:"-"`
-	ticker          *time.Ticker  `wire:"-"`
-	Cache           cachex.Cacher
-	MenuDAL         *dal.Menu
-	MenuResourceDAL *dal.MenuResource
-	RoleDAL         *dal.Role
+	enforcer    *atomic.Value `wire:"-"`
+	ticker      *time.Ticker  `wire:"-"`
+	Cache       cachex.Cacher
+	MenuDAL     *dal.Menu
+	MenuMetaDAL *dal.MenuMeta
+	RoleDAL     *dal.Role
 }
 
 func (a *Casbinx) GetEnforcer() *casbin.Enforcer {
@@ -40,8 +39,8 @@ func (a *Casbinx) GetEnforcer() *casbin.Enforcer {
 }
 
 type policyQueueItem struct {
-	RoleID    string
-	Resources schema.MenuResources
+	RoleID string
+	Menus  []*schema.Menu
 }
 
 func (a *Casbinx) Load(ctx context.Context) error {
@@ -84,8 +83,8 @@ func (a *Casbinx) load(ctx context.Context) error {
 			defer wg.Done()
 			ibuf := new(bytes.Buffer)
 			for item := range queue {
-				for _, res := range item.Resources {
-					_, _ = ibuf.WriteString(fmt.Sprintf("p, %s, %s, %s \n", item.RoleID, res.Path, res.Method))
+				for _, res := range item.Menus {
+					_, _ = ibuf.WriteString(fmt.Sprintf("p, %s, %s \n", item.RoleID, res.Path))
 				}
 			}
 			lock.Lock()
@@ -95,15 +94,15 @@ func (a *Casbinx) load(ctx context.Context) error {
 	}
 
 	for _, item := range roleResult.Data {
-		resources, err := a.queryRoleResources(ctx, item.ID)
+		resources, err := a.queryRoleMenus(ctx, item.ID)
 		if err != nil {
 			logging.Context(ctx).Error("Failed to query role resources", zap.Error(err))
 			continue
 		}
 		atomic.AddInt32(&resCount, int32(len(resources)))
 		queue <- &policyQueueItem{
-			RoleID:    item.ID,
-			Resources: resources,
+			RoleID: item.ID,
+			Menus:  resources,
 		}
 	}
 	close(queue)
@@ -139,7 +138,7 @@ func (a *Casbinx) load(ctx context.Context) error {
 	return nil
 }
 
-func (a *Casbinx) queryRoleResources(ctx context.Context, roleID string) (schema.MenuResources, error) {
+func (a *Casbinx) queryRoleMenus(ctx context.Context, roleID string) ([]*schema.Menu, error) {
 	menuResult, err := a.MenuDAL.Query(ctx, schema.MenuQueryParam{
 		RoleID: roleID,
 		Status: schema.MenuStatusEnabled,
@@ -154,36 +153,7 @@ func (a *Casbinx) queryRoleResources(ctx context.Context, roleID string) (schema
 		return nil, nil
 	}
 
-	menuIDs := make([]string, 0, len(menuResult.Data))
-	menuIDMapper := make(map[string]struct{})
-	for _, item := range menuResult.Data {
-		if _, ok := menuIDMapper[item.ID]; ok {
-			continue
-		}
-		menuIDs = append(menuIDs, item.ID)
-		menuIDMapper[item.ID] = struct{}{}
-		if pp := item.ParentPath; pp != "" {
-			for _, pid := range strings.Split(pp, util.TreePathDelimiter) {
-				if pid == "" {
-					continue
-				}
-				if _, ok := menuIDMapper[pid]; ok {
-					continue
-				}
-				menuIDs = append(menuIDs, pid)
-				menuIDMapper[pid] = struct{}{}
-			}
-		}
-	}
-
-	menuResourceResult, err := a.MenuResourceDAL.Query(ctx, schema.MenuResourceQueryParam{
-		MenuIDs: menuIDs,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return menuResourceResult.Data, nil
+	return menuResult.Data, nil
 }
 
 func (a *Casbinx) autoLoad(ctx context.Context) {
