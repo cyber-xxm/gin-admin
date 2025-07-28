@@ -14,7 +14,7 @@ const (
 
 var (
 	MenusOrderParams = []util.OrderByParam{
-		{Field: "sequence", Direction: util.DESC},
+		//{Field: "sequence", Direction: util.DESC},
 		{Field: "created_at", Direction: util.DESC},
 	}
 )

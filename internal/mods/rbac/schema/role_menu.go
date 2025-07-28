@@ -23,7 +23,9 @@ func (a *RoleMenu) TableName() string {
 // Defining the query parameters for the `RoleMenu` struct.
 type RoleMenuQueryParam struct {
 	util.PaginationParam
-	RoleID string `form:"-"` // From Role.ID
+	RoleID  string   `form:"-"` // From Role.ID
+	MenuIDs []string `form:"-"` // Include menu IDs
+	RoleIDs []string `form:"-"` // Include role IDs
 }
 
 // Defining the query options for the `RoleMenu` struct.
@@ -39,6 +41,14 @@ type RoleMenuQueryResult struct {
 
 // Defining the slice of `RoleMenu` struct.
 type RoleMenus []*RoleMenu
+
+func (a RoleMenus) ToMenuIDs() []string {
+	var ids []string
+	for _, item := range a {
+		ids = append(ids, item.MenuID)
+	}
+	return ids
+}
 
 // Defining the data structure for creating a `RoleMenu` struct.
 type RoleMenuForm struct {

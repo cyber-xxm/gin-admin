@@ -3,7 +3,6 @@ package biz
 import (
 	"context"
 	"net/http"
-	"sort"
 	"time"
 
 	"github.com/LyricTian/captcha"
@@ -27,6 +26,7 @@ type Login struct {
 	UserDAL     *dal.User
 	UserRoleDAL *dal.UserRole
 	MenuDAL     *dal.Menu
+	MenuMetaDAL *dal.MenuMeta
 	UserBIZ     *User
 }
 
@@ -150,7 +150,7 @@ func (a *Login) Login(ctx context.Context, formItem *schema.LoginForm) (*schema.
 
 	// login by root
 	if formItem.Username == config.C.General.Root.Username {
-		if formItem.Password != config.C.General.Root.Password {
+		if hash.MD5String(formItem.Password) != config.C.General.Root.Password {
 			return nil, errors.BadRequest(config.ErrInvalidUsernameOrPassword, "Incorrect username or password")
 		}
 
@@ -248,6 +248,7 @@ func (a *Login) GetUserInfo(ctx context.Context) (*schema.User, error) {
 			Username: config.C.General.Root.Username,
 			Name:     config.C.General.Root.Name,
 			Status:   schema.UserStatusActivated,
+			Roles:    schema.UserRoles{&schema.UserRole{UserID: "1", RoleID: config.C.General.Root.ID, RoleName: config.C.General.Root.Name}},
 		}, nil
 	}
 
@@ -308,7 +309,7 @@ func (a *Login) UpdatePassword(ctx context.Context, updateItem *schema.UpdateLog
 }
 
 // Query menus based on user permissions
-func (a *Login) QueryMenus(ctx context.Context) (schema.Menus, error) {
+func (a *Login) QueryMenus(ctx context.Context) (map[string]interface{}, error) {
 	menuQueryParams := schema.MenuQueryParam{
 		Status: schema.MenuStatusEnabled,
 	}
@@ -322,34 +323,24 @@ func (a *Login) QueryMenus(ctx context.Context) (schema.Menus, error) {
 			OrderFields: schema.MenusOrderParams,
 		},
 	})
+	m := make(map[string]interface{})
+	m["home"] = "home"
 	if err != nil {
 		return nil, err
-	} else if isRoot {
-		return menuResult.Data.ToTree(), nil
 	}
 
-	// fill parent menus
-	if parentIDs := menuResult.Data.SplitParentIDs(); len(parentIDs) > 0 {
-		var missMenusIDs []string
-		menuIDMapper := menuResult.Data.ToMap()
-		for _, parentID := range parentIDs {
-			if _, ok := menuIDMapper[parentID]; !ok {
-				missMenusIDs = append(missMenusIDs, parentID)
-			}
+	// fill menu meta
+	for i, item := range menuResult.Data {
+		resResult, err := a.MenuMetaDAL.Query(ctx, schema.MenuMetaQueryParam{
+			MenuID: item.ID,
+		})
+		if err != nil {
+			return nil, err
 		}
-		if len(missMenusIDs) > 0 {
-			parentResult, err := a.MenuDAL.Query(ctx, schema.MenuQueryParam{
-				InIDs: missMenusIDs,
-			})
-			if err != nil {
-				return nil, err
-			}
-			menuResult.Data = append(menuResult.Data, parentResult.Data...)
-			sort.Sort(menuResult.Data)
-		}
+		menuResult.Data[i].Meta = resResult.Data
 	}
-
-	return menuResult.Data.ToTree(), nil
+	m["routes"] = menuResult.Data.ToTree()
+	return m, nil
 }
 
 // Update current user info
