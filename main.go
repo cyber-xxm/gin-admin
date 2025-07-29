@@ -20,7 +20,7 @@ var VERSION = "v10.1.0"
 // @basePath /
 func main() {
 	app := cli.NewApp()
-	app.Name = "ginadmin"
+	app.Name = "gin-admin"
 	app.Version = VERSION
 	app.Usage = "A lightweight, flexible, elegant and full-featured RBAC scaffolding based on GIN + GORM 2.0 + Casbin 2.0 + Wire DI."
 	app.Commands = []*cli.Command{
