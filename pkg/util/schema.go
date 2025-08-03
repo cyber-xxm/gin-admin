@@ -11,7 +11,6 @@ const (
 type ResponseResult struct {
 	Success bool          `json:"success"`
 	Data    interface{}   `json:"data,omitempty"`
-	Total   int64         `json:"total,omitempty"`
 	Code    int           `json:"code,omitempty"`
 	Msg     string        `json:"msg,omitempty"`
 	Error   *errors.Error `json:"error,omitempty"`
@@ -20,14 +19,14 @@ type ResponseResult struct {
 type PaginationResult struct {
 	Total    int64 `json:"total"`
 	Current  int   `json:"current"`
-	PageSize int   `json:"pageSize"`
+	PageSize int   `json:"page_size"`
 }
 
 type PaginationParam struct {
 	Pagination bool `form:"-"`
 	OnlyCount  bool `form:"-"`
 	Current    int  `form:"current"`
-	PageSize   int  `form:"pageSize" binding:"max=100"`
+	PageSize   int  `form:"page_size" binding:"max=100"`
 }
 
 type QueryOptions struct {

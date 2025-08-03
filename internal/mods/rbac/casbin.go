@@ -144,7 +144,7 @@ func (a *Casbinx) queryRoleMenus(ctx context.Context, roleID string) ([]*schema.
 		Status: schema.MenuStatusEnabled,
 	}, schema.MenuQueryOptions{
 		QueryOptions: util.QueryOptions{
-			SelectFields: []string{"id", "parent_id", "parent_path"},
+			SelectFields: []string{"id", "parent_id"},
 		},
 	})
 	if err != nil {

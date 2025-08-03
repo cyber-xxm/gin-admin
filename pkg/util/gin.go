@@ -97,20 +97,25 @@ func ResOK(c *gin.Context) {
 }
 
 func ResPage(c *gin.Context, v interface{}, pr *PaginationResult) {
-	var total int64
-	if pr != nil {
-		total = pr.Total
-	}
-
 	reflectValue := reflect.Indirect(reflect.ValueOf(v))
+	m := make(map[string]interface{})
 	if reflectValue.IsNil() {
-		v = make([]interface{}, 0)
+		m["data"] = make([]interface{}, 0)
+		m["total"] = 0
+		m["current"] = 0
+		m["page_size"] = 0
+	} else {
+		if pr != nil {
+			m["total"] = pr.Total
+			m["current"] = pr.Current
+			m["page_size"] = pr.PageSize
+		}
+		m["data"] = v
 	}
 
 	ResJSON(c, http.StatusOK, ResponseResult{
 		Success: true,
-		Data:    v,
-		Total:   total,
+		Data:    m,
 		Code:    http.StatusOK,
 		Msg:     "操作成功",
 	})

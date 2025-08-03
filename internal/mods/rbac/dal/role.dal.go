@@ -27,13 +27,10 @@ func (a *Role) Query(ctx context.Context, params schema.RoleQueryParam, opts ...
 	}
 
 	db := GetRoleDB(ctx, a.DB)
-	if v := params.InIDs; len(v) > 0 {
-		db = db.Where("id IN (?)", v)
-	}
 	if v := params.LikeName; len(v) > 0 {
 		db = db.Where("name LIKE ?", "%"+v+"%")
 	}
-	if v := params.Status; len(v) > 0 {
+	if v := params.Status; v > 0 {
 		db = db.Where("status = ?", v)
 	}
 	if v := params.GtUpdatedAt; v != nil {
@@ -76,8 +73,8 @@ func (a *Role) Exists(ctx context.Context, id string) (bool, error) {
 	return ok, errors.WithStack(err)
 }
 
-func (a *Role) ExistsCode(ctx context.Context, code string) (bool, error) {
-	ok, err := util.Exists(ctx, GetRoleDB(ctx, a.DB).Where("code=?", code))
+func (a *Role) ExistsName(ctx context.Context, name string) (bool, error) {
+	ok, err := util.Exists(ctx, GetRoleDB(ctx, a.DB).Where("name=?", name))
 	return ok, errors.WithStack(err)
 }
 

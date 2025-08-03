@@ -8,13 +8,12 @@ import (
 )
 
 const (
-	MenuStatusDisabled = "disabled"
-	MenuStatusEnabled  = "enabled"
+	MenuStatusDisabled = 2
+	MenuStatusEnabled  = 1
 )
 
 var (
 	MenusOrderParams = []util.OrderByParam{
-		//{Field: "sequence", Direction: util.DESC},
 		{Field: "created_at", Direction: util.DESC},
 	}
 )
@@ -22,13 +21,15 @@ var (
 // Menu management for RBAC
 type Menu struct {
 	ID          string    `json:"id" gorm:"size:20;primarykey;"`   // Unique ID
+	Code        string    `json:"code" gorm:"size:128;index"`      // Display code of menu
 	Name        string    `json:"name" gorm:"size:128;index"`      // Display name of menu
 	Path        string    `json:"path" gorm:"size:255;"`           // Access path of menu
 	Component   string    `json:"component" gorm:"size:255;"`      // Code of menu (unique for each level)
 	Description string    `json:"description" gorm:"size:1024"`    // Details about menu
 	ParentID    string    `json:"parent_id" gorm:"size:20;index;"` // Parent ID (From Menu.ID)
 	Children    *Menus    `json:"children" gorm:"-"`               // Child menus
-	Status      string    `json:"status" gorm:"size:20;index"`     // Status of menu (enabled, disabled)
+	MenuType    int8      `json:"menu_type"`                       // MenuType of menu (1-dir, 2-menu)
+	Status      int8      `json:"status"`                          // Status of menu (1-enabled, 2-disabled)
 	CreatedAt   time.Time `json:"created_at" gorm:"index;"`        // Create time
 	UpdatedAt   time.Time `json:"updated_at" gorm:"index;"`        // Update time
 	Meta        *MenuMeta `json:"meta" gorm:"-"`                   // Meta of menu
@@ -41,15 +42,14 @@ func (a *Menu) TableName() string {
 // Defining the query parameters for the `Menu` struct.
 type MenuQueryParam struct {
 	util.PaginationParam
-	CodePath         string   `form:"code"`             // Code path (like xxx.xxx.xxx)
-	LikeName         string   `form:"name"`             // Display name of menu
-	IncludeResources bool     `form:"includeResources"` // Include resources
-	InIDs            []string `form:"-"`                // Include menu IDs
-	Status           string   `form:"-"`                // Status of menu (disabled, enabled)
-	ParentID         string   `form:"-"`                // Parent ID (From Menu.ID)
-	ParentPathPrefix string   `form:"-"`                // Parent path (split by .)
-	UserID           string   `form:"-"`                // User ID
-	RoleID           string   `form:"-"`                // Role ID
+	CodePath         string   `form:"code"` // Code path (like xxx.xxx.xxx)
+	LikeName         string   `form:"name"` // Display name of menu
+	InIDs            []string `form:"-"`    // Include menu IDs
+	Status           int8     `form:"-"`    // Status of menu (2-disabled, 1-enabled)
+	ParentID         string   `form:"-"`    // Parent ID (From Menu.ID)
+	ParentPathPrefix string   `form:"-"`    // Parent path (split by .)
+	UserID           string   `form:"-"`    // User ID
+	RoleID           string   `form:"-"`    // Role ID
 }
 
 // Defining the query options for the `Menu` struct.
@@ -123,21 +123,25 @@ func (a Menus) ToTree() Menus {
 
 // Defining the data structure for creating a `Menu` struct.
 type MenuForm struct {
-	Name        string    `json:"name" binding:"required,max=128"`                  // Display name of menu
-	Path        string    `json:"path" binding:"required"`                          // Access path of menu
-	Component   string    `json:"component"`                                        // Details about menu
-	Description string    `json:"description"`                                      // Details about menu
-	ParentID    string    `json:"parent_id"`                                        // Parent ID (From Menu.ID)
-	Status      string    `json:"status" binding:"required,oneof=disabled enabled"` // Status of menu (enabled, disabled)
-	Meta        *MenuMeta `json:"meta" binding:"required"`                          // Meta of menu
+	Name        string    `json:"name" binding:"required,max=128"` // Display name of menu
+	Code        string    `json:"code" binding:"required,max=128"` // Display code of menu
+	Path        string    `json:"path" binding:"required"`         // Access path of menu
+	Component   string    `json:"component"`                       // Details about menu
+	Description string    `json:"description"`                     // Details about menu
+	ParentID    string    `json:"parent_id"`                       // Parent ID (From Menu.ID)
+	MenuType    int8      `json:"menu_type" binding:"required"`    // MenuType of menu (1-dir, 2-menu)
+	Status      int8      `json:"status" binding:"required"`       // Status of menu (1-enabled, 2-disabled)
+	Meta        *MenuMeta `json:"meta" binding:"required"`         // Meta of menu
 }
 
 func (a *MenuForm) FillTo(menu *Menu) error {
 	menu.Name = a.Name
+	menu.Code = a.Code
 	menu.Path = a.Path
 	menu.Component = a.Component
 	menu.Description = a.Description
 	menu.ParentID = a.ParentID
+	menu.MenuType = a.MenuType
 	menu.Status = a.Status
 	return nil
 }

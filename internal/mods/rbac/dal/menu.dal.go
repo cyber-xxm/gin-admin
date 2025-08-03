@@ -34,7 +34,7 @@ func (a *Menu) Query(ctx context.Context, params schema.MenuQueryParam, opts ...
 	if v := params.LikeName; len(v) > 0 {
 		db = db.Where("name LIKE ?", "%"+v+"%")
 	}
-	if v := params.Status; len(v) > 0 {
+	if v := params.Status; v > 0 {
 		db = db.Where("status = ?", v)
 	}
 	if v := params.ParentID; len(v) > 0 {

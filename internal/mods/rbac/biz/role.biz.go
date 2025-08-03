@@ -35,7 +35,6 @@ func (a *Role) Query(ctx context.Context, params schema.RoleQueryParam) (*schema
 	result, err := a.RoleDAL.Query(ctx, params, schema.RoleQueryOptions{
 		QueryOptions: util.QueryOptions{
 			OrderFields: []util.OrderByParam{
-				//{Field: "sequence", Direction: util.DESC},
 				{Field: "created_at", Direction: util.DESC},
 			},
 			SelectFields: selectFields,
@@ -69,7 +68,7 @@ func (a *Role) Get(ctx context.Context, id string) (*schema.Role, error) {
 
 // Create a new role in the data access object.
 func (a *Role) Create(ctx context.Context, formItem *schema.RoleForm) (*schema.Role, error) {
-	if exists, err := a.RoleDAL.ExistsCode(ctx, formItem.Code); err != nil {
+	if exists, err := a.RoleDAL.ExistsName(ctx, formItem.Name); err != nil {
 		return nil, err
 	} else if exists {
 		return nil, errors.BadRequest("", "Role code already exists")
@@ -113,8 +112,8 @@ func (a *Role) Update(ctx context.Context, id string, formItem *schema.RoleForm)
 		return err
 	} else if role == nil {
 		return errors.NotFound("", "Role not found")
-	} else if role.Code != formItem.Code {
-		if exists, err := a.RoleDAL.ExistsCode(ctx, formItem.Code); err != nil {
+	} else if role.Name != formItem.Name {
+		if exists, err := a.RoleDAL.ExistsName(ctx, formItem.Name); err != nil {
 			return err
 		} else if exists {
 			return errors.BadRequest("", "Role code already exists")

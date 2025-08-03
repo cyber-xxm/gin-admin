@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/LyricTian/gin-admin/v10/internal/config"
@@ -82,10 +81,6 @@ func (a *Menu) createInBatchByParent(ctx context.Context, items schema.Menus, pa
 			return err
 		}
 
-		if item.Status == "" {
-			item.Status = schema.MenuStatusEnabled
-		}
-
 		if menuItem != nil {
 			changed := false
 			if menuItem.Name != item.Name {
@@ -154,10 +149,6 @@ func (a *Menu) createInBatchByParent(ctx context.Context, items schema.Menus, pa
 func (a *Menu) Query(ctx context.Context, params schema.MenuQueryParam) (*schema.MenuQueryResult, error) {
 	params.Pagination = false
 
-	if err := a.fillQueryParam(ctx, &params); err != nil {
-		return nil, err
-	}
-
 	result, err := a.MenuDAL.Query(ctx, params, schema.MenuQueryOptions{
 		QueryOptions: util.QueryOptions{
 			OrderFields: schema.MenusOrderParams,
@@ -167,54 +158,25 @@ func (a *Menu) Query(ctx context.Context, params schema.MenuQueryParam) (*schema
 		return nil, err
 	}
 
-	if params.LikeName != "" || params.CodePath != "" {
+	if params.LikeName != "" {
 		result.Data, err = a.appendChildren(ctx, result.Data)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if params.IncludeResources {
-		for i, item := range result.Data {
-			resResult, err := a.MenuMetaDAL.Query(ctx, schema.MenuMetaQueryParam{
-				MenuID: item.ID,
-			})
-			if err != nil {
-				return nil, err
-			}
-			result.Data[i].Meta = resResult.Data
+	for i, item := range result.Data {
+		resResult, err := a.MenuMetaDAL.Query(ctx, schema.MenuMetaQueryParam{
+			MenuID: item.ID,
+		})
+		if err != nil {
+			return nil, err
 		}
+		result.Data[i].Meta = resResult.Data
 	}
 
 	result.Data = result.Data.ToTree()
 	return result, nil
-}
-
-func (a *Menu) fillQueryParam(ctx context.Context, params *schema.MenuQueryParam) error {
-	if params.CodePath != "" {
-		var (
-			codes    []string
-			lastMenu schema.Menu
-		)
-		for _, code := range strings.Split(params.CodePath, util.TreePathDelimiter) {
-			if code == "" {
-				continue
-			}
-			codes = append(codes, code)
-			menu, err := a.MenuDAL.GetByCodeAndParentID(ctx, code, lastMenu.ParentID, schema.MenuQueryOptions{
-				QueryOptions: util.QueryOptions{
-					SelectFields: []string{"id", "parent_id", "parent_path"},
-				},
-			})
-			if err != nil {
-				return err
-			} else if menu == nil {
-				return errors.NotFound("", "Menu not found by code '%s'", strings.Join(codes, util.TreePathDelimiter))
-			}
-			lastMenu = *menu
-		}
-	}
-	return nil
 }
 
 func (a *Menu) appendChildren(ctx context.Context, data schema.Menus) (schema.Menus, error) {
