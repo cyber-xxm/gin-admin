@@ -26,7 +26,6 @@ type RBAC struct {
 func (a *RBAC) AutoMigrate(ctx context.Context) error {
 	return a.DB.AutoMigrate(
 		new(schema.Menu),
-		new(schema.MenuMeta),
 		new(schema.Role),
 		new(schema.RoleMenu),
 		new(schema.User),
@@ -78,6 +77,7 @@ func (a *RBAC) RegisterV1Routers(ctx context.Context, v1 *gin.RouterGroup) error
 	{
 		menu.GET("", a.MenuAPI.Query)
 		menu.GET(":id", a.MenuAPI.Get)
+		menu.GET("pages", a.MenuAPI.GetAllPage)
 		menu.POST("", a.MenuAPI.Create)
 		menu.PUT(":id", a.MenuAPI.Update)
 		menu.DELETE(":id", a.MenuAPI.Delete)

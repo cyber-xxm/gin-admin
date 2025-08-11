@@ -1,240 +1,264 @@
 [
     {
-        "code": "home",
-        "name": "首页",
-        "sequence": 90,
-        "type": "page",
-        "path": "/home",
-        "status": "enabled"
+        "status": 1,
+        "menu_type": 2,
+        "menu_name": "首页",
+        "route_name": "home",
+        "route_path": "/home",
+        "component": "layout.base$view.home",
+        "order": 1,
+        "i18n_key": "route.home",
+        "icon": "mdi:monitor-dashboard",
+        "icon_type": 1
     },
     {
-        "code": "system",
-        "name": "系统管理",
-        "sequence": 10,
-        "type": "page",
-        "path": "/system",
-        "status": "enabled",
+        "updateTime": "",
+        "status": 1,
+        "menu_type": 1,
+        "menu_name": "功能",
+        "route_name": "function",
+        "route_path": "/function",
+        "component": "layout.base",
+        "order": 3,
+        "i18n_key": "route.function",
+        "icon": "icon-park-outline:all-application",
+        "icon_type": 1,
         "children": [
             {
-                "code": "menu",
-                "name": "菜单管理",
-                "sequence": 90,
-                "type": "page",
-                "path": "/system/menu",
-                "status": "enabled",
+                "status": 1,
+                "menu_type": 2,
+                "menu_name": "多标签页",
+                "route_name": "function_multi-tab",
+                "route_path": "/function/multi-tab",
+                "component": "view.function_multi-tab",
+                "order": 1,
+                "i18n_key": "route.function_multi-tab",
+                "icon": "ic:round-tab",
+                "icon_type": 1,
+                "multi_tab": true,
+                "hide_menu": true,
+                "active_menu": "function_tab"
+            },
+            {
+                "status": 1,
+                "menu_type": 2,
+                "menu_name": "标签页",
+                "route_name": "function_tab",
+                "route_path": "/function/tab",
+                "component": "view.function_tab",
+                "order": 2,
+                "i18n_key": "route.function_tab",
+                "icon": "ic:round-tab",
+                "icon_type": 1
+            }
+        ]
+    },
+    {
+        "updateTime": "",
+        "status": 1,
+        "menu_type": 1,
+        "menu_name": "异常页",
+        "route_name": "exception",
+        "route_path": "/exception",
+        "component": "layout.base",
+        "order": 3,
+        "i18n_key": "route.exception",
+        "icon": "ant-design:exception-outlined",
+        "icon_type": 1,
+        "children": [
+            {
+                "status": 1,
+                "menu_type": 2,
+                "menu_name": "403",
+                "route_name": "exception_403",
+                "route_path": "/exception/403",
+                "component": "view.403",
+                "order": 1,
+                "i18n_key": "route.exception_403",
+                "icon": "ic:baseline-block",
+                "icon_type": 1
+            },
+            {
+                "status": 1,
+                "menu_type": 2,
+                "menu_name": "404",
+                "route_name": "exception_404",
+                "route_path": "/exception/404",
+                "component": "view.404",
+                "order": 2,
+                "i18n_key": "route.exception_404",
+                "icon": "ic:baseline-web-asset-off",
+                "icon_type": 1
+            },
+            {
+                "status": 1,
+                "parent_id": "5",
+                "menu_type": 2,
+                "menu_name": "500",
+                "route_name": "exception_500",
+                "route_path": "/exception/500",
+                "component": "view.500",
+                "order": 3,
+                "i18n_key": "route.exception_500",
+                "icon": "ic:baseline-wifi-off",
+                "icon_type": 1
+            }
+        ]
+    },
+    {
+        "updateTime": "",
+        "status": 1,
+        "menu_type": 1,
+        "menu_name": "多级菜单",
+        "route_name": "multi-menu",
+        "route_path": "/multi-menu",
+        "component": "layout.base",
+        "order": 4,
+        "i18n_key": "route.multi-menu",
+        "icon": "mdi:menu",
+        "icon_type": 1,
+        "children": [
+            {
+                "status": 1,
+                "menu_type": 1,
+                "menu_name": "一级子菜单1",
+                "route_name": "multi-menu_first",
+                "route_path": "/multi-menu/first",
+                "order": 1,
+                "i18n_key": "route.multi-menu_first",
+                "icon": "mdi:menu",
+                "icon_type": 1,
                 "children": [
                     {
-                        "code": "add",
-                        "name": "增加",
-                        "sequence": 9,
-                        "type": "button",
-                        "status": "enabled",
-                        "resources": [
-                            {
-                                "method": "POST",
-                                "path": "/api/v1/menus"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "edit",
-                        "name": "编辑",
-                        "sequence": 8,
-                        "type": "button",
-                        "status": "enabled",
-                        "resources": [
-                            {
-                                "method": "PUT",
-                                "path": "/api/v1/menus/{id}"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "delete",
-                        "name": "删除",
-                        "sequence": 7,
-                        "type": "button",
-                        "status": "enabled",
-                        "resources": [
-                            {
-                                "method": "DELETE",
-                                "path": "/api/v1/menus/{id}"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "search",
-                        "name": "查询",
-                        "sequence": 6,
-                        "type": "button",
-                        "status": "enabled"
-                    }
-                ],
-                "resources": [
-                    {
-                        "method": "GET",
-                        "path": "/api/v1/menus"
-                    },
-                    {
-                        "method": "GET",
-                        "path": "/api/v1/menus/{id}"
+                        "status": 1,
+                        "parent_id": "10",
+                        "menu_type": 2,
+                        "menu_name": "二级子菜单",
+                        "route_name": "multi-menu_first_child",
+                        "route_path": "/multi-menu/first/child",
+                        "component": "view.multi-menu_first_child",
+                        "order": 1,
+                        "i18n_key": "route.multi-menu_first_child",
+                        "icon": "mdi:menu",
+                        "icon_type": 1
                     }
                 ]
             },
             {
-                "code": "role",
-                "name": "角色管理",
-                "sequence": 80,
-                "type": "page",
-                "path": "/system/role",
-                "status": "enabled",
+                "status": 1,
+                "menu_type": 1,
+                "menu_name": "一级子菜单2",
+                "route_name": "multi-menu_second",
+                "route_path": "/multi-menu/second",
+                "order": 13,
+                "i18n_key": "route.multi-menu_second",
+                "icon": "mdi:menu",
+                "icon_type": 1,
                 "children": [
                     {
-                        "code": "add",
-                        "name": "增加",
-                        "sequence": 9,
-                        "type": "button",
-                        "status": "enabled",
-                        "resources": [
+                        "status": 1,
+                        "parent_id": "12",
+                        "menu_type": 1,
+                        "menu_name": "二级子菜单2",
+                        "route_name": "multi-menu_second_child",
+                        "route_path": "/multi-menu/second/child",
+                        "order": 1,
+                        "i18n_key": "route.multi-menu_second_child",
+                        "icon": "mdi:menu",
+                        "icon_type": 1,
+                        "children": [
                             {
-                                "method": "POST",
-                                "path": "/api/v1/roles"
+                                "status": 1,
+                                "parent_id": "14",
+                                "menu_type": 2,
+                                "menu_name": "三级菜单",
+                                "route_name": "multi-menu_second_child_home",
+                                "route_path": "/multi-menu/second/child/home",
+                                "component": "view.multi-menu_second_child_home",
+                                "order": 1,
+                                "i18n_key": "route.multi-menu_second_child_home",
+                                "icon": "mdi:menu",
+                                "icon_type": 1
                             }
                         ]
-                    },
-                    {
-                        "code": "edit",
-                        "name": "编辑",
-                        "sequence": 8,
-                        "type": "button",
-                        "status": "enabled",
-                        "resources": [
-                            {
-                                "method": "PUT",
-                                "path": "/api/v1/roles/{id}"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "delete",
-                        "name": "删除",
-                        "sequence": 7,
-                        "type": "button",
-                        "status": "enabled",
-                        "resources": [
-                            {
-                                "method": "DELETE",
-                                "path": "/api/v1/roles/{id}"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "search",
-                        "name": "查询",
-                        "sequence": 6,
-                        "type": "button",
-                        "status": "enabled"
-                    }
-                ],
-                "resources": [
-                    {
-                        "method": "GET",
-                        "path": "/api/v1/menus"
-                    },
-                    {
-                        "method": "GET",
-                        "path": "/api/v1/roles"
-                    },
-                    {
-                        "method": "GET",
-                        "path": "/api/v1/roles/{id}"
-                    }
-                ]
-            },
-            {
-                "code": "user",
-                "name": "用户管理",
-                "sequence": 70,
-                "type": "page",
-                "path": "/system/user",
-                "status": "enabled",
-                "children": [
-                    {
-                        "code": "add",
-                        "name": "增加",
-                        "sequence": 9,
-                        "type": "button",
-                        "status": "enabled",
-                        "resources": [
-                            {
-                                "method": "POST",
-                                "path": "/api/v1/users"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "edit",
-                        "name": "编辑",
-                        "sequence": 8,
-                        "type": "button",
-                        "status": "enabled",
-                        "resources": [
-                            {
-                                "method": "PUT",
-                                "path": "/api/v1/users/{id}"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "delete",
-                        "name": "删除",
-                        "sequence": 7,
-                        "type": "button",
-                        "status": "enabled",
-                        "resources": [
-                            {
-                                "method": "DELETE",
-                                "path": "/api/v1/users/{id}"
-                            }
-                        ]
-                    },
-                    {
-                        "code": "search",
-                        "name": "查询",
-                        "sequence": 6,
-                        "type": "button",
-                        "status": "enabled"
-                    }
-                ],
-                "resources": [
-                    {
-                        "method": "GET",
-                        "path": "/api/v1/roles"
-                    },
-                    {
-                        "method": "GET",
-                        "path": "/api/v1/users"
-                    },
-                    {
-                        "method": "GET",
-                        "path": "/api/v1/users/{id}"
-                    }
-                ]
-            },
-            {
-                "code": "logger",
-                "name": "日志查询",
-                "sequence": 10,
-                "type": "page",
-                "path": "/system/logger",
-                "status": "enabled",
-                "resources": [
-                    {
-                        "method": "GET",
-                        "path": "/api/v1/loggers"
                     }
                 ]
             }
         ]
+    },
+    {
+        "updateTime": "",
+        "status": 1,
+        "menu_type": 1,
+        "menu_name": "系统管理",
+        "route_name": "manage",
+        "route_path": "/manage",
+        "component": "layout.base",
+        "order": 5,
+        "i18n_key": "route.manage",
+        "icon": "carbon:cloud-service-management",
+        "icon_type": 1,
+        "children": [
+            {
+                "status": 1,
+                "menu_type": 2,
+                "menu_name": "用户管理",
+                "route_name": "manage_user",
+                "route_path": "/manage/user",
+                "component": "view.manage_user",
+                "order": 1,
+                "i18n_key": "route.manage_user",
+                "icon": "ic:round-manage-accounts",
+                "icon_type": 1
+            },
+            {
+                "status": 1,
+                "menu_type": 2,
+                "menu_name": "角色管理",
+                "route_name": "manage_role",
+                "route_path": "/manage/role",
+                "component": "view.manage_role",
+                "order": 2,
+                "i18n_key": "route.manage_role",
+                "icon": "carbon:user-role",
+                "icon_type": 1
+            },
+            {
+                "status": 1,
+                "menu_type": 2,
+                "menu_name": "菜单管理",
+                "route_name": "manage_menu",
+                "route_path": "/manage/menu",
+                "component": "view.manage_menu",
+                "order": 3,
+                "i18n_key": "route.manage_menu",
+                "icon": "material-symbols:route",
+                "icon_type": 1
+            },
+            {
+                "status": 1,
+                "menu_type": 2,
+                "menu_name": "用户详情",
+                "route_name": "manage_user-detail",
+                "route_path": "/manage/user-detail/:id",
+                "component": "view.manage_user-detail",
+                "order": 4,
+                "i18n_key": "route.manage_user-detail",
+                "hide_menu": true
+            }
+        ]
+    },
+    {
+        "updateTime": "",
+        "status": 1,
+        "menu_type": 2,
+        "menu_name": "关于",
+        "route_name": "about",
+        "route_path": "/about",
+        "component": "layout.base$view.about",
+        "order": 6,
+        "i18n_key": "route.about",
+        "icon": "fluent:book-information-24-regular",
+        "icon_type": 1
     }
 ]

@@ -58,6 +58,18 @@ func (a *Menu) Get(c *gin.Context) {
 
 // @Tags MenuAPI
 // @Security ApiKeyAuth
+// @Summary Get all page
+// @Success 200 {object} util.ResponseResult{data=[]string}
+// @Failure 401 {object} util.ResponseResult
+// @Failure 500 {object} util.ResponseResult
+// @Router /api/v1/menus/pages [get]
+func (a *Menu) GetAllPage(c *gin.Context) {
+	item := a.MenuBIZ.GetAllPages()
+	util.ResSuccess(c, item)
+}
+
+// @Tags MenuAPI
+// @Security ApiKeyAuth
 // @Summary Create menu record
 // @Param body body schema.MenuForm true "Request body"
 // @Success 200 {object} util.ResponseResult{data=schema.Menu}

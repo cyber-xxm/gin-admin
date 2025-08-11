@@ -18,6 +18,7 @@ type User struct {
 	Cache       cachex.Cacher
 	Trans       *util.Trans
 	UserDAL     *dal.User
+	RoleDAL     *dal.Role
 	UserRoleDAL *dal.UserRole
 }
 
@@ -36,19 +37,20 @@ func (a *User) Query(ctx context.Context, params schema.UserQueryParam) (*schema
 	if err != nil {
 		return nil, err
 	}
-
-	if userIDs := result.Data.ToIDs(); len(userIDs) > 0 {
+	for _, user := range result.Data {
 		userRoleResult, err := a.UserRoleDAL.Query(ctx, schema.UserRoleQueryParam{
-			InUserIDs: userIDs,
-		}, schema.UserRoleQueryOptions{
-			JoinRole: true,
+			UserID: user.ID,
 		})
 		if err != nil {
 			return nil, err
 		}
-		userRolesMap := userRoleResult.Data.ToUserIDMap()
-		for _, user := range result.Data {
-			user.Roles = userRolesMap[user.ID]
+		roleIDs := userRoleResult.Data.ToRoleIDs()
+		for _, roleId := range roleIDs {
+			role, err := a.RoleDAL.Get(ctx, roleId)
+			if err != nil {
+				return nil, err
+			}
+			user.Roles = append(user.Roles, role)
 		}
 	}
 
@@ -74,7 +76,14 @@ func (a *User) Get(ctx context.Context, id string) (*schema.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	user.Roles = userRoleResult.Data
+	roleIDs := userRoleResult.Data.ToRoleIDs()
+	for _, roleId := range roleIDs {
+		role, err := a.RoleDAL.Get(ctx, roleId)
+		if err != nil {
+			return nil, err
+		}
+		user.Roles = append(user.Roles, role)
+	}
 
 	return user, nil
 }
@@ -106,9 +115,11 @@ func (a *User) Create(ctx context.Context, formItem *schema.UserForm) (*schema.U
 			return err
 		}
 
-		for _, userRole := range formItem.Roles {
+		for _, role := range formItem.Roles {
+			userRole := new(schema.UserRole)
 			userRole.ID = util.NewXID()
 			userRole.UserID = user.ID
+			userRole.RoleID = role.ID
 			userRole.CreatedAt = time.Now()
 			if err := a.UserRoleDAL.Create(ctx, userRole); err != nil {
 				return err
@@ -119,7 +130,18 @@ func (a *User) Create(ctx context.Context, formItem *schema.UserForm) (*schema.U
 	if err != nil {
 		return nil, err
 	}
-	user.Roles = formItem.Roles
+	roleQueryResult, err := a.UserRoleDAL.Query(ctx, schema.UserRoleQueryParam{UserID: user.ID})
+	if err != nil {
+		return nil, err
+	}
+	roleIDs := roleQueryResult.Data.ToRoleIDs()
+	for _, roleId := range roleIDs {
+		role, err := a.RoleDAL.Get(ctx, roleId)
+		if err != nil {
+			return nil, err
+		}
+		user.Roles = append(user.Roles, role)
+	}
 
 	return user, nil
 }
@@ -153,11 +175,11 @@ func (a *User) Update(ctx context.Context, id string, formItem *schema.UserForm)
 		if err := a.UserRoleDAL.DeleteByUserID(ctx, id); err != nil {
 			return err
 		}
-		for _, userRole := range formItem.Roles {
-			if userRole.ID == "" {
-				userRole.ID = util.NewXID()
-			}
+		for _, role := range formItem.Roles {
+			userRole := new(schema.UserRole)
+			userRole.ID = util.NewXID()
 			userRole.UserID = user.ID
+			userRole.RoleID = role.ID
 			if userRole.CreatedAt.IsZero() {
 				userRole.CreatedAt = time.Now()
 			}

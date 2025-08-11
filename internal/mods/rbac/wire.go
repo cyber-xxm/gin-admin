@@ -14,7 +14,6 @@ var Set = wire.NewSet(
 	wire.Struct(new(dal.Menu), "*"),
 	wire.Struct(new(biz.Menu), "*"),
 	wire.Struct(new(api.Menu), "*"),
-	wire.Struct(new(dal.MenuMeta), "*"),
 	wire.Struct(new(dal.Role), "*"),
 	wire.Struct(new(biz.Role), "*"),
 	wire.Struct(new(api.Role), "*"),

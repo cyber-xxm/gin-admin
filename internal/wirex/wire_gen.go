@@ -40,9 +40,6 @@ func BuildInjector(ctx context.Context) (*Injector, func(), error) {
 	menu := &dal.Menu{
 		DB: db,
 	}
-	menuMeta := &dal.MenuMeta{
-		DB: db,
-	}
 	roleMenu := &dal.RoleMenu{
 		DB: db,
 	}
@@ -50,7 +47,6 @@ func BuildInjector(ctx context.Context) (*Injector, func(), error) {
 		Cache:       cacher,
 		Trans:       trans,
 		MenuDAL:     menu,
-		MenuMetaDAL: menuMeta,
 		RoleMenuDAL: roleMenu,
 	}
 	apiMenu := &api.Menu{
@@ -79,6 +75,7 @@ func BuildInjector(ctx context.Context) (*Injector, func(), error) {
 		Cache:       cacher,
 		Trans:       trans,
 		UserDAL:     user,
+		RoleDAL:     role,
 		UserRoleDAL: userRole,
 	}
 	apiUser := &api.User{
@@ -88,9 +85,9 @@ func BuildInjector(ctx context.Context) (*Injector, func(), error) {
 		Cache:       cacher,
 		Auth:        auther,
 		UserDAL:     user,
+		RoleDAL:     role,
 		UserRoleDAL: userRole,
 		MenuDAL:     menu,
-		MenuMetaDAL: menuMeta,
 		UserBIZ:     bizUser,
 	}
 	apiLogin := &api.Login{
@@ -106,10 +103,9 @@ func BuildInjector(ctx context.Context) (*Injector, func(), error) {
 		LoggerBIZ: bizLogger,
 	}
 	casbinx := &rbac.Casbinx{
-		Cache:       cacher,
-		MenuDAL:     menu,
-		MenuMetaDAL: menuMeta,
-		RoleDAL:     role,
+		Cache:   cacher,
+		MenuDAL: menu,
+		RoleDAL: role,
 	}
 	rbacRBAC := &rbac.RBAC{
 		DB:        db,

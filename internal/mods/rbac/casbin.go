@@ -23,12 +23,11 @@ import (
 
 // Load rbac permissions to casbin
 type Casbinx struct {
-	enforcer    *atomic.Value `wire:"-"`
-	ticker      *time.Ticker  `wire:"-"`
-	Cache       cachex.Cacher
-	MenuDAL     *dal.Menu
-	MenuMetaDAL *dal.MenuMeta
-	RoleDAL     *dal.Role
+	enforcer *atomic.Value `wire:"-"`
+	ticker   *time.Ticker  `wire:"-"`
+	Cache    cachex.Cacher
+	MenuDAL  *dal.Menu
+	RoleDAL  *dal.Role
 }
 
 func (a *Casbinx) GetEnforcer() *casbin.Enforcer {
@@ -84,7 +83,7 @@ func (a *Casbinx) load(ctx context.Context) error {
 			ibuf := new(bytes.Buffer)
 			for item := range queue {
 				for _, res := range item.Menus {
-					_, _ = ibuf.WriteString(fmt.Sprintf("p, %s, %s \n", item.RoleID, res.Path))
+					_, _ = ibuf.WriteString(fmt.Sprintf("p, %s, %s \n", item.RoleID, res.RoutePath))
 				}
 			}
 			lock.Lock()

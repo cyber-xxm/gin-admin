@@ -33,8 +33,8 @@ func (a *User) Query(ctx context.Context, params schema.UserQueryParam, opts ...
 	if v := params.LikeName; len(v) > 0 {
 		db = db.Where("name LIKE ?", "%"+v+"%")
 	}
-	if v := params.UserGender; v > 0 {
-		db = db.Where("user_gender = ?", v)
+	if v := params.Gender; v > 0 {
+		db = db.Where("gender = ?", v)
 	}
 	if v := params.Email; len(v) > 0 {
 		db = db.Where("email LIKE ?", "%"+v+"%")

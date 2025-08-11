@@ -24,9 +24,9 @@ type Login struct {
 	Cache       cachex.Cacher
 	Auth        jwtx.Auther
 	UserDAL     *dal.User
+	RoleDAL     *dal.Role
 	UserRoleDAL *dal.UserRole
 	MenuDAL     *dal.Menu
-	MenuMetaDAL *dal.MenuMeta
 	UserBIZ     *User
 }
 
@@ -248,7 +248,7 @@ func (a *Login) GetUserInfo(ctx context.Context) (*schema.User, error) {
 			Username: config.C.General.Root.Username,
 			Name:     config.C.General.Root.Name,
 			Status:   schema.UserStatusActivated,
-			Roles:    schema.UserRoles{&schema.UserRole{UserID: "1", RoleID: config.C.General.Root.ID, RoleName: config.C.General.Root.Name}},
+			Roles:    schema.Roles{&schema.Role{ID: config.C.General.Root.ID, Name: config.C.General.Root.Name}},
 		}, nil
 	}
 
@@ -265,14 +265,19 @@ func (a *Login) GetUserInfo(ctx context.Context) (*schema.User, error) {
 	}
 
 	userRoleResult, err := a.UserRoleDAL.Query(ctx, schema.UserRoleQueryParam{
-		UserID: userID,
-	}, schema.UserRoleQueryOptions{
-		JoinRole: true,
+		UserID: user.ID,
 	})
 	if err != nil {
 		return nil, err
 	}
-	user.Roles = userRoleResult.Data
+	roleIDs := userRoleResult.Data.ToRoleIDs()
+	for _, roleId := range roleIDs {
+		role, err := a.RoleDAL.Get(ctx, roleId)
+		if err != nil {
+			return nil, err
+		}
+		user.Roles = append(user.Roles, role)
+	}
 
 	return user, nil
 }
@@ -310,9 +315,7 @@ func (a *Login) UpdatePassword(ctx context.Context, updateItem *schema.UpdateLog
 
 // Query menus based on user permissions
 func (a *Login) QueryMenus(ctx context.Context) (map[string]interface{}, error) {
-	menuQueryParams := schema.MenuQueryParam{
-		Status: schema.MenuStatusEnabled,
-	}
+	menuQueryParams := schema.MenuQueryParam{}
 
 	isRoot := util.FromIsRootUser(ctx)
 	if !isRoot {
@@ -328,18 +331,25 @@ func (a *Login) QueryMenus(ctx context.Context) (map[string]interface{}, error) 
 	if err != nil {
 		return nil, err
 	}
-
-	// fill menu meta
-	for i, item := range menuResult.Data {
-		resResult, err := a.MenuMetaDAL.Query(ctx, schema.MenuMetaQueryParam{
-			MenuID: item.ID,
-		})
-		if err != nil {
-			return nil, err
-		}
-		menuResult.Data[i].Meta = resResult.Data
+	var rs schema.Routes
+	for _, item := range menuResult.Data {
+		route := new(schema.Route)
+		route.ID = item.ID
+		route.ParentID = item.ParentID
+		route.Name = item.RouteName
+		route.Path = item.RoutePath
+		route.Component = item.Component
+		route.Meta.Title = item.RouteName
+		route.Meta.I18nKey = item.I18nKey
+		route.Meta.Icon = item.Icon
+		route.Meta.Order = item.Order
+		route.Meta.KeepAlive = item.KeepAlive
+		route.Meta.ActiveMenu = item.ActiveMenu
+		route.Meta.HideMenu = item.HideMenu
+		route.Meta.MultiTab = item.MultiTab
+		rs = append(rs, route)
 	}
-	m["routes"] = menuResult.Data.ToTree()
+	m["routes"] = rs.ToTree()
 	return m, nil
 }
 

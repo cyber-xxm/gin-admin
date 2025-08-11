@@ -9,17 +9,17 @@ import (
 
 // Logger management
 type Logger struct {
-	ID        string    `gorm:"size:20;primaryKey;" json:"id"`           // Unique ID
-	Level     string    `gorm:"size:20;index;" json:"level"`             // Log level
-	TraceID   string    `gorm:"size:64;index;" json:"trace_id"`          // Trace ID
-	UserID    string    `gorm:"size:20;index;" json:"user_id"`           // User ID
-	Tag       string    `gorm:"size:32;index;" json:"tag"`               // Log tag
-	Message   string    `gorm:"size:1024;" json:"message"`               // Log message
-	Stack     string    `gorm:"type:text;" json:"stack"`                 // Error stack
-	Data      string    `gorm:"type:text;" json:"data"`                  // Log data
-	CreatedAt time.Time `gorm:"index;" json:"created_at"`                // Create time
-	LoginName string    `json:"login_name" gorm:"<-:false;-:migration;"` // From User.Username
-	UserName  string    `json:"user_name" gorm:"<-:false;-:migration;"`  // From User.Name
+	ID        string    `gorm:"size:20;primaryKey;" json:"id,omitempty"`           // Unique ID
+	Level     string    `gorm:"size:20;index;" json:"level,omitempty"`             // Log level
+	TraceID   string    `gorm:"size:64;index;" json:"trace_id,omitempty"`          // Trace ID
+	UserID    string    `gorm:"size:20;index;" json:"user_id,omitempty"`           // User ID
+	Tag       string    `gorm:"size:32;index;" json:"tag,omitempty"`               // Log tag
+	Message   string    `gorm:"size:1024;" json:"message,omitempty"`               // Log message
+	Stack     string    `gorm:"type:text;" json:"stack,omitempty"`                 // Error stack
+	Data      string    `gorm:"type:text;" json:"data,omitempty"`                  // Log data
+	CreatedAt time.Time `gorm:"index;" json:"created_at,omitempty"`                // Create time
+	LoginName string    `json:"login_name,omitempty" gorm:"<-:false;-:migration;"` // From User.Username
+	UserName  string    `json:"user_name,omitempty" gorm:"<-:false;-:migration;"`  // From User.Name
 }
 
 func (a *Logger) TableName() string {

@@ -32,10 +32,10 @@ func (a *Role) TableName() string {
 // Defining the query parameters for the `Role` struct.
 type RoleQueryParam struct {
 	util.PaginationParam
-	LikeName    string     `form:"name"`       // Display name of role
-	Status      int        `form:"status"`     // Status of role (disabled, enabled)
-	ResultType  string     `form:"resultType"` // Result type (options: select)
-	GtUpdatedAt *time.Time `form:"-"`          // Update time is greater than
+	LikeName    string     `form:"name"`        // Display name of role
+	Status      int        `form:"status"`      // Status of role (disabled, enabled)
+	ResultType  string     `form:"result_type"` // Result type (options: select)
+	GtUpdatedAt *time.Time `form:"-"`           // Update time is greater than
 }
 
 // Defining the query options for the `Role` struct.
@@ -54,10 +54,10 @@ type Roles []*Role
 
 // Defining the data structure for creating a `Role` struct.
 type RoleForm struct {
-	Name        string    `json:"name" binding:"required,max=128"`     // Display name of role
-	Description string    `json:"description"`                         // Details about role
-	Status      int       `json:"status" binding:"required,oneof=1 2"` // Status of role (enabled, disabled)
-	Menus       RoleMenus `json:"menus"`                               // Role menu list
+	Name        string    `json:"name,omitempty" binding:"required,max=128"`     // Display name of role
+	Description string    `json:"description,omitempty"`                         // Details about role
+	Status      int       `json:"status,omitempty" binding:"required,oneof=1 2"` // Status of role (enabled, disabled)
+	Menus       RoleMenus `json:"menus,omitempty"`                               // Role menu list
 }
 
 // A validation function for the `RoleForm` struct.

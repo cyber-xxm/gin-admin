@@ -27,21 +27,8 @@ func (a *Menu) Query(ctx context.Context, params schema.MenuQueryParam, opts ...
 	}
 
 	db := GetMenuDB(ctx, a.DB)
-
-	if v := params.InIDs; len(v) > 0 {
-		db = db.Where("id IN ?", v)
-	}
-	if v := params.LikeName; len(v) > 0 {
-		db = db.Where("name LIKE ?", "%"+v+"%")
-	}
 	if v := params.Status; v > 0 {
 		db = db.Where("status = ?", v)
-	}
-	if v := params.ParentID; len(v) > 0 {
-		db = db.Where("parent_id = ?", v)
-	}
-	if v := params.ParentPathPrefix; len(v) > 0 {
-		db = db.Where("parent_path LIKE ?", v+"%")
 	}
 	if v := params.UserID; len(v) > 0 {
 		userRoleQuery := GetUserRoleDB(ctx, a.DB).Where("user_id = ?", v).Select("role_id")
@@ -83,14 +70,14 @@ func (a *Menu) Get(ctx context.Context, id string, opts ...schema.MenuQueryOptio
 	return item, nil
 }
 
-func (a *Menu) GetByCodeAndParentID(ctx context.Context, code, parentID string, opts ...schema.MenuQueryOptions) (*schema.Menu, error) {
+func (a *Menu) GetByCodeAndParentID(ctx context.Context, routeName, parentID string, opts ...schema.MenuQueryOptions) (*schema.Menu, error) {
 	var opt schema.MenuQueryOptions
 	if len(opts) > 0 {
 		opt = opts[0]
 	}
 
 	item := new(schema.Menu)
-	ok, err := util.FindOne(ctx, GetMenuDB(ctx, a.DB).Where("code=? AND parent_id=?", code, parentID), opt.QueryOptions, item)
+	ok, err := util.FindOne(ctx, GetMenuDB(ctx, a.DB).Where("route_name=? AND parent_id=?", routeName, parentID), opt.QueryOptions, item)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	} else if !ok {
@@ -99,15 +86,15 @@ func (a *Menu) GetByCodeAndParentID(ctx context.Context, code, parentID string, 
 	return item, nil
 }
 
-// GetByNameAndParentID get the specified menu from the database.
-func (a *Menu) GetByNameAndParentID(ctx context.Context, name, parentID string, opts ...schema.MenuQueryOptions) (*schema.Menu, error) {
+// GetByRouteNameAndParentID get the specified menu from the database.
+func (a *Menu) GetByRouteNameAndParentID(ctx context.Context, routeName, parentID string, opts ...schema.MenuQueryOptions) (*schema.Menu, error) {
 	var opt schema.MenuQueryOptions
 	if len(opts) > 0 {
 		opt = opts[0]
 	}
 
 	item := new(schema.Menu)
-	ok, err := util.FindOne(ctx, GetMenuDB(ctx, a.DB).Where("name=? AND parent_id=?", name, parentID), opt.QueryOptions, item)
+	ok, err := util.FindOne(ctx, GetMenuDB(ctx, a.DB).Where("route_name=? AND parent_id=?", routeName, parentID), opt.QueryOptions, item)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	} else if !ok {
@@ -122,9 +109,9 @@ func (a *Menu) Exists(ctx context.Context, id string) (bool, error) {
 	return ok, errors.WithStack(err)
 }
 
-// Checks if a menu with the specified `code` exists under the specified `parentID` in the database.
-func (a *Menu) ExistsCodeByParentID(ctx context.Context, code, parentID string) (bool, error) {
-	ok, err := util.Exists(ctx, GetMenuDB(ctx, a.DB).Where("code=? AND parent_id=?", code, parentID))
+// Checks if a menu with the specified `routeName` exists under the specified `parentID` in the database.
+func (a *Menu) ExistsRouteNameByParentID(ctx context.Context, routeName, parentID string) (bool, error) {
+	ok, err := util.Exists(ctx, GetMenuDB(ctx, a.DB).Where("route_name=? AND parent_id=?", routeName, parentID))
 	return ok, errors.WithStack(err)
 }
 
