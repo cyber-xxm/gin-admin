@@ -1,1 +1,1 @@
-./ginadmin start -d configs -c dev -s dist --daemon
+./cyber-gin start -d configs -c dev -s dist --daemon

@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/devcontainers/go:1.22-bookworm
 
-ARG APP=ginadmin
+ARG APP=cyber-gin
 
 # Set CGO_CFLAGS to enable large file support
 ENV CGO_CFLAGS "-D_LARGEFILE64_SOURCE"

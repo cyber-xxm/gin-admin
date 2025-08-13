@@ -2,6 +2,7 @@ package rbac
 
 import (
 	"context"
+	"github.com/LyricTian/gin-admin/v10/pkg/util"
 	"path/filepath"
 
 	"github.com/LyricTian/gin-admin/v10/internal/config"
@@ -55,6 +56,9 @@ func (a *RBAC) Init(ctx context.Context) error {
 }
 
 func (a *RBAC) RegisterV1Routers(ctx context.Context, v1 *gin.RouterGroup) error {
+	v1.GET("health", func(c *gin.Context) {
+		util.ResOK(c)
+	})
 	captcha := v1.Group("captcha")
 	{
 		captcha.GET("id", a.LoginAPI.GetCaptcha)

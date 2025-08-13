@@ -93,6 +93,7 @@ func ResOK(c *gin.Context) {
 		Success: true,
 		Code:    http.StatusOK,
 		Msg:     "操作成功",
+		Data:    true,
 	})
 }
 

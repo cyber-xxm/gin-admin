@@ -5,7 +5,7 @@ CallerSkip = 1
 
 [Logger.File]
 Enable = false
-Path = "data/log/ginadmin.log"
+Path = "data/log/gin-admin.log"
 MaxBackups = 20 # Files
 MaxSize = 64 # MB
 
@@ -18,8 +18,9 @@ MaxThread = 2
 
 [Logger.Hooks.Options]
 Debug = "false"
-DBType = "sqlite3" # sqlite3/mysql/postgres
-DSN = "data/ginadmin.db"
+DBType = "mysql" # sqlite3/mysql/postgres
+#DSN = "data/gin-admin.db"
+DSN = "root:12345678@tcp(ip:3306)/gin-admin?charset=utf8mb4&parseTime=True&loc=Local"
 MaxOpenConns = "16"
 MaxIdleConns = "4"
 MaxLifetime = "86400"

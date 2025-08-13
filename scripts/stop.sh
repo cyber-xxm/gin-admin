@@ -1,1 +1,1 @@
-./ginadmin stop
+./cyber-gin stop

@@ -12,9 +12,9 @@
 *.out
 
 *.DS_Store
-/ginadmin
-/ginadmin_linux_amd64
-/ginadmin.lock
+/cyber-gin
+/cyber-gin_linux_amd64
+/cyber-gin.lock
 /release
 /data
 /internal/test/data

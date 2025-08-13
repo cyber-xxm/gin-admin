@@ -21,7 +21,7 @@
 - :electric_plug: 创新采用 `WIRE` 依赖注入，革命性地简化模块依赖关系，让代码更加优雅解耦
 - :memo: 基于高性能 `Zap` 日志框架，配合 Context 链路追踪，让系统运行状态清晰透明，问题排查无所遁形
 - :key: 整合久经考验的 `JWT` 认证机制，让用户身份验证更加安全可靠
-- :microscope: 自动集成 `Swagger` 接口文档，API 文档实时更新，开发调试更轻松 - [在线体验](https://demo.ginadmin.top/swagger/index.html)
+- :microscope: 自动集成 `Swagger` 接口文档，API 文档实时更新，开发调试更轻松 - [在线体验](https://demo.cyber-gin.top/swagger/index.html)
 - :wrench: 完善的单元测试体系，基于 `testify` 框架保障系统质量，让 bug 无处藏身
 - :100: 采用无状态设计，支持水平扩展，搭配 Redis 实现动态权限管理，让您的系统轻松应对高并发
 - :hammer: 开发者福音！配套强大的脚手架工具 [gin-admin-cli](https://github.com/gin-admin/gin-admin-cli)，让您的开发工作事半功倍

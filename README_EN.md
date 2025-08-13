@@ -21,7 +21,7 @@ English | [中文](README.md)
 - :electric_plug: Innovatively adopts `WIRE` dependency injection, revolutionarily simplifies module dependency relationships, making code more elegant and decoupled
 - :memo: Based on high-performance `Zap` logging framework, coupled with Context tracing, making system running status clear and transparent, problem troubleshooting nowhere to hide
 - :key: Integrates time-tested `JWT` authentication mechanism, making user identity verification more secure and reliable
-- :microscope: Automatically integrates `Swagger` API documentation, real-time API documentation updates, making development and debugging easier - [Online Demo](https://demo.ginadmin.top/swagger/index.html)
+- :microscope: Automatically integrates `Swagger` API documentation, real-time API documentation updates, making development and debugging easier - [Online Demo](https://demo.cyber-gin.top/swagger/index.html)
 - :wrench: Complete unit testing system, based on `testify` framework to ensure system quality, leaving no place for bugs to hide
 - :100: Adopts stateless design, supports horizontal scaling, paired with Redis to implement dynamic permission management, letting your system easily handle high concurrency
 - :hammer: Developer's blessing! Powerful scaffolding tool [gin-admin-cli](https://github.com/gin-admin/gin-admin-cli), making your development work twice as efficient

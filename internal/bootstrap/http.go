@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -11,7 +12,7 @@ import (
 	"github.com/LyricTian/gin-admin/v10/internal/config"
 	"github.com/LyricTian/gin-admin/v10/internal/utility/prom"
 	"github.com/LyricTian/gin-admin/v10/internal/wirex"
-	"github.com/LyricTian/gin-admin/v10/pkg/errors"
+	gerr "github.com/LyricTian/gin-admin/v10/pkg/errors"
 	"github.com/LyricTian/gin-admin/v10/pkg/logging"
 	"github.com/LyricTian/gin-admin/v10/pkg/middleware"
 	"github.com/LyricTian/gin-admin/v10/pkg/util"
@@ -30,17 +31,14 @@ func startHTTPServer(ctx context.Context, injector *wirex.Injector) (func(), err
 	}
 
 	e := gin.New()
-	e.GET("/health", func(c *gin.Context) {
-		util.ResOK(c)
-	})
 	e.Use(middleware.RecoveryWithConfig(middleware.RecoveryConfig{
 		Skip: config.C.Middleware.Recovery.Skip,
 	}))
 	e.NoMethod(func(c *gin.Context) {
-		util.ResError(c, errors.MethodNotAllowed("", "Method Not Allowed"))
+		util.ResError(c, gerr.MethodNotAllowed("", "Method Not Allowed"))
 	})
 	e.NoRoute(func(c *gin.Context) {
-		util.ResError(c, errors.NotFound("", "Not Found"))
+		util.ResError(c, gerr.NotFound("", "Not Found"))
 	})
 
 	allowedPrefixes := injector.M.RouterPrefixes()
@@ -87,7 +85,7 @@ func startHTTPServer(ctx context.Context, injector *wirex.Injector) (func(), err
 			err = srv.ListenAndServe()
 		}
 
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logging.Context(ctx).Error("Failed to listen http server", zap.Error(err))
 		}
 	}()

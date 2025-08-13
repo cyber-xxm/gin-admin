@@ -1,1 +1,0 @@
-import{d as s,b as t,o as l,e as n,t as a}from"./index-DveyiFJE.js";const o=["href"],c=s({name:"WebSiteLink",__name:"web-site-link",props:{label:{},link:{}},setup(r){return(e,i)=>(l(),t("p",null,[n("span",null,a(e.label),1),n("a",{class:"text-blue-500",href:e.link,target:"#"},a(e.link),9,o)]))}});export{c as _};

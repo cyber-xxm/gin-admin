@@ -1,1 +1,0 @@
-import{d as e,b as o,o as t}from"./index-DveyiFJE.js";const n={class:"min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto"},l=e({name:"manage_log",__name:"index",setup(a){return(s,c)=>(t(),o("div",n," 日志 "))}});export{l as default};
